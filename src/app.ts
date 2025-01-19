@@ -6,6 +6,7 @@ import userRoutes from "./route/user/user.routes";
 import commonAddressRoutes from "./route/common-address/common-address.routes";
 import storeRoute from "./route/store/store.routes";
 import identificationTypeRoute from "./route/identification-type/identification-type.routes";
+import customerRoute from "./route/customer/customer.routes";
 
 dotEnv.config();
 
@@ -35,6 +36,7 @@ app.use(`${apiUrlPrefix}/user`, userRoutes);
 app.use(`${apiUrlPrefix}/common-address`, commonAddressRoutes);
 app.use(`${apiUrlPrefix}/store`, storeRoute);
 app.use(`${apiUrlPrefix}/identification-type`, identificationTypeRoute);
+app.use(`${apiUrlPrefix}/customer`, customerRoute);
 
 // error handling
 app.use((req, res, next) => {

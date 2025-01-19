@@ -26,6 +26,7 @@ export class ResponseBuilder {
 
   public setPayload(payload: any) {
     this.payload = payload;
+    return this;
   }
 
   public build() {
