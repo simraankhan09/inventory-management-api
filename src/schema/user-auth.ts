@@ -6,16 +6,19 @@ export const userAuthSchema = Joi.object({
     "any.required": "Email required",
   }),
   password: Joi.string()
-    // .pattern(
-    //   new RegExp(
+    // .custom((value) => {
+    //   const regEx = new RegExp(
     //     /^(?=.*[a-z])(?=.*[A-Z])(?=.*d)(?=.*[@$!%*?&])[A-Za-zd@$!%*?&]{5,15}$/
-    //   )
-    // )
+    //   );
+    //   if (!regEx.test(value)) {
+    //     throw new Error();
+    //   }
+    // })
     .required()
     .messages({
       "string.base": "Password should be a string",
       "any.required": "Password is required",
-      "string.pattern.base":
+      "any.custom":
         "Password must be 5-15 characters long, include at least one uppercase letter, one lowercase letter, one number, and one special character.",
     }),
 });
