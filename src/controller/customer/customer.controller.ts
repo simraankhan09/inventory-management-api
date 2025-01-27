@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { IResponse } from "../../common/types";
+import { IResponse, PaginatedResponse } from "../../common/types";
 import { ResponseBuilder } from "../../common/response-builder";
 import { createCustomerSchema } from "../../schema/customer";
-import { CustomerCreateResource } from "./interface";
+import { CustomerCreateResource, CustomerSearchResponse } from "./interface";
 import { errorCode } from "../../common/error-code";
 import { connectDatabase } from "../../utils/connect-database";
 import { ResultSetHeader, RowDataPacket } from "mysql2";
@@ -71,8 +71,8 @@ export const createCustomer = async (
     ) {
       const { firstName, lastName, dateOfBirth, telephone } = request.body;
       const saveCustomerQuery = `INSERT INTO 
-        customers (first_name, last_name, common_address_id, telephone_no, date_of_birth, customer_ref_code, identification_id)
-        VALUES (?,?,?,?,?,?,?)
+        customers (first_name, last_name, common_address_id, telephone_no, date_of_birth, customer_ref_code, identification_id, userId)
+        VALUES (?,?,?,?,?,?,?,?)
         `;
       const paddedLastIndex = String(refCodeRows[0]["last_index"]).padStart(
         6,
@@ -89,6 +89,8 @@ export const createCustomer = async (
           dateOfBirth ?? null,
           customerRefCode,
           identificationQueryResult.insertId,
+          // @ts-ignore
+          request.userData.userId,
         ]
       );
       if (saveCustomerQueryResult.affectedRows === 1) {
@@ -119,6 +121,89 @@ export const createCustomer = async (
   } catch (error) {
     console.log(error);
     const responseBuilder = new ResponseBuilder(response);
+    const errorObj = error as any;
+    responseBuilder.setCode(errorObj?.code);
+    responseBuilder.setMessage(errorObj?.message);
+    responseBuilder.setStatusCode(500);
+    return responseBuilder.build();
+  }
+};
+
+export const getCustomersByUserId = async (
+  request: Request<any, any, any>,
+  response: Response<IResponse>,
+  next: NextFunction
+) => {
+  const responseBuilder = new ResponseBuilder(response);
+  try {
+    const conn = await connectDatabase();
+    if (!conn) return;
+    // @ts-ignore
+    const userId = request.userData.userId;
+    const query = "SELECT * FROM customers WHERE userId = ?";
+    const [customers] = await conn.query<RowDataPacket[]>(query, [userId]);
+    return responseBuilder
+      .setCode("")
+      .setMessage("")
+      .setPayload(customers)
+      .setStatusCode(200)
+      .build();
+  } catch (error) {
+    console.log(error);
+    const errorObj = error as any;
+    responseBuilder.setCode(errorObj?.code);
+    responseBuilder.setMessage(errorObj?.message);
+    responseBuilder.setStatusCode(500);
+    return responseBuilder.build();
+  }
+};
+
+export const customerSearch = async (
+  request: Request<
+    any,
+    any,
+    {
+      searchKey: string;
+      keyValue: string;
+      pageSize: string;
+      pageNumber: string;
+    }
+  >,
+  response: Response<IResponse>,
+  next: NextFunction
+) => {
+  const responseBuilder = new ResponseBuilder(response);
+  try {
+    const conn = await connectDatabase();
+    if (!conn) return;
+    const { searchKey, keyValue, pageSize, pageNumber } = request.query;
+    // @ts-ignore
+    const userId = request.userData.userId;
+    const searchKeyValue = `%${keyValue?.toString()}%'`;
+    const likeQuery =
+      searchKey && keyValue ? `AND ${searchKey} LIKE '${searchKeyValue}` : "";
+    const query = `
+        SELECT *
+        FROM customers
+        WHERE userId = ${userId} ${likeQuery}
+        ORDER BY id DESC
+        LIMIT ${pageSize} OFFSET ${Number(pageSize) * Number(pageNumber)}
+    `;
+    const [customers] = await conn.query<RowDataPacket[]>(query);
+    const paginatedResponse: PaginatedResponse<CustomerSearchResponse> = {
+      content: customers as CustomerSearchResponse[],
+      current: Number(pageNumber),
+      size: Number(pageSize),
+      total: customers.length,
+    };
+    return responseBuilder
+      .setCode("")
+      .setMessage("")
+      .setPayload(paginatedResponse)
+      .setStatusCode(200)
+      .build();
+  } catch (error) {
+    console.log(error);
     const errorObj = error as any;
     responseBuilder.setCode(errorObj?.code);
     responseBuilder.setMessage(errorObj?.message);

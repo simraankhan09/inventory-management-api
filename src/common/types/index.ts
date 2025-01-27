@@ -20,3 +20,10 @@ export type CommonAddressType = {
   city: string;
   postalCode: number;
 };
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  total: number;
+  current: number;
+  size: number;
+}

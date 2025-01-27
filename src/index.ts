@@ -1,6 +1,6 @@
 import app from "./app";
 import { startStandaloneServer } from "@apollo/server/standalone";
-import { server } from "./graphql-server/src";
+import { server } from "./graphql-server";
 
 const PORT = process.env.PORT || 8000;
 

@@ -9,3 +9,15 @@ export interface CustomerCreateResource {
   identificationNo: string;
   identificationTypeId: number;
 }
+
+export interface CustomerSearchResponse {
+  id: number;
+  firstName: string;
+  lastName: string;
+  common_address_id: number;
+  telephone?: string;
+  dateOfBirth?: string;
+  customer_ref_code: string;
+  identification_id: number;
+  userId: number;
+}
