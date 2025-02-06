@@ -83,5 +83,6 @@ export const typeDefs = `#graphql
     type Query{
         customers: [Customer]
         commonAddresses: [CommonAddress]
+        customer(id:ID!):Customer
     }
 `;

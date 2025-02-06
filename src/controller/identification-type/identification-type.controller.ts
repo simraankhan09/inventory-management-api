@@ -4,7 +4,8 @@ import { IdentificationTypeCreateResource } from "./interface";
 import { identificationCreateSchema } from "../../schema/identification-type";
 import { errorCode } from "../../common/error-code";
 import { connectDatabase } from "../../utils/connect-database";
-import { ResultSetHeader } from "mysql2";
+import { ResultSetHeader, RowDataPacket } from "mysql2";
+import { ResponseBuilder } from "../../common/response-builder";
 
 export const createIdentificationType = async (
   request: Request<any, any, IdentificationTypeCreateResource>,
@@ -48,5 +49,31 @@ export const createIdentificationType = async (
       code: errorObj?.code,
       message: errorObj?.message,
     });
+  }
+};
+
+export const getAllIdentificationTypes = async (
+  request: Request,
+  response: Response<IResponse>,
+  next: NextFunction
+) => {
+  const responseBuilder = new ResponseBuilder(response);
+  try {
+    const conn = await connectDatabase();
+    if (!conn) return;
+    const query = "SELECT * FROM identification_types";
+    const [identificationTypes] = await conn.query<RowDataPacket[]>(query);
+    return responseBuilder
+      .setCode("")
+      .setMessage("")
+      .setStatusCode(200)
+      .setPayload(identificationTypes)
+      .build();
+  } catch (error) {
+    const errorObj = error as any;
+    responseBuilder.setCode(errorObj?.code);
+    responseBuilder.setMessage(errorObj?.message);
+    responseBuilder.setStatusCode(500);
+    return responseBuilder.build();
   }
 };

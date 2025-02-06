@@ -3,6 +3,7 @@ import {
   getIdentificationById,
   getAllCustomers,
   getIdentificationTypeById,
+  getCustomerById,
 } from "./db";
 
 // export const resolvers = {
@@ -71,6 +72,9 @@ export const resolvers = {
   Query: {
     customers: async () => {
       return await getAllCustomers();
+    },
+    customer: async (_: any, args: any) => {
+      return await getCustomerById(args.id);
     },
   },
   Customer: {

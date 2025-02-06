@@ -49,9 +49,22 @@ const getIdentificationTypeById = async (id: number) => {
   }
 };
 
+const getCustomerById = async (id: number) => {
+  try {
+    const conn = await connectDatabase();
+    if (!conn) return undefined;
+    const query = `SELECT * FROM customers WHERE id = ${id}`;
+    const [customer] = await conn.query<RowDataPacket[]>(query);
+    return customer[0];
+  } catch (error) {
+    return undefined;
+  }
+};
+
 export {
   getAllCustomers,
   getAddressById,
   getIdentificationById,
   getIdentificationTypeById,
+  getCustomerById,
 };

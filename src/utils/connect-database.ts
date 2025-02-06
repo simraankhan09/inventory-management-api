@@ -19,6 +19,7 @@ export const connectDatabase = () => {
         user: process.env.DATABASE_USER_NAME,
         password: process.env.DATABASE_PASSWORD,
         host: process.env.DATABASE_HOST_NAME,
+        multipleStatements: true,
       };
       conn = await createConnection(config);
       isConnected = true;

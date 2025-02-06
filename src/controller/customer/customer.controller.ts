@@ -162,6 +162,7 @@ export const customerSearch = async (
   request: Request<
     any,
     any,
+    any,
     {
       searchKey: string;
       keyValue: string;
@@ -183,18 +184,21 @@ export const customerSearch = async (
     const likeQuery =
       searchKey && keyValue ? `AND ${searchKey} LIKE '${searchKeyValue}` : "";
     const query = `
+        SELECT COUNT(*) as total
+        FROM customers
+        WHERE userId = ${userId} ${likeQuery};
         SELECT *
         FROM customers
         WHERE userId = ${userId} ${likeQuery}
         ORDER BY id DESC
-        LIMIT ${pageSize} OFFSET ${Number(pageSize) * Number(pageNumber)}
+        LIMIT ${pageSize} OFFSET ${Number(pageSize) * Number(pageNumber)};
     `;
-    const [customers] = await conn.query<RowDataPacket[]>(query);
+    const [results] = await conn.query<RowDataPacket[]>(query);
     const paginatedResponse: PaginatedResponse<CustomerSearchResponse> = {
-      content: customers as CustomerSearchResponse[],
+      content: results[1] as CustomerSearchResponse[],
       current: Number(pageNumber),
       size: Number(pageSize),
-      total: customers.length,
+      total: results[0][0].total,
     };
     return responseBuilder
       .setCode("")
